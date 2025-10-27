@@ -64,10 +64,53 @@ const AdminDashboard: React.FC = () => {
       });
     };
 
+    const handleNewData = (newData: { type: string; value: number }) => {
+      console.log('Received new data via socket:', newData);
+      setData(prevData => {
+        if (!prevData) return null;
+
+        let updatedTemp = prevData.averageTemp;
+        let updatedHumidity = prevData.averageHumidity;
+
+        if (newData.type === 'suhu') {
+          updatedTemp = newData.value;
+        } else if (newData.type === 'kelembaban') {
+          updatedHumidity = newData.value;
+        }
+
+        if (newData.type !== 'suhu' && newData.type !== 'kelembaban') {
+          const newChartData = [...(prevData.qualityChartData || []), {
+            recorded_at: new Date().toISOString(),
+            jenis_data: newData.type,
+            data: newData.value
+          }];
+
+          if (newChartData.length > 100) { // Increased limit for more data points
+            newChartData.shift();
+          }
+
+          return {
+            ...prevData,
+            averageTemp: updatedTemp,
+            averageHumidity: updatedHumidity,
+            qualityChartData: newChartData
+          };
+        }
+
+        return {
+          ...prevData,
+          averageTemp: updatedTemp,
+          averageHumidity: updatedHumidity,
+        };
+      });
+    };
+
     socket.on('new_notification', handleNewNotification);
+    socket.on('new_data', handleNewData);
 
     return () => {
       socket.off('new_notification', handleNewNotification);
+      socket.off('new_data', handleNewData);
       socket.disconnect();
     };
   }, [navigate]);

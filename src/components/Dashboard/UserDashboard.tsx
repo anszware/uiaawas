@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'chart.js';
 import { dashboardAPI } from '../../services/api';
+import { socket } from '../../services/socket';
 import { UserDashboardData } from '../../types';
 
 ChartJS.register(
@@ -29,11 +30,45 @@ const UserDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    function onNewData(newData: { type: string; value: number }) {
+      console.log('Received new data in UserDashboard:', newData);
+      setData((previousData) => {
+        if (!previousData) return null;
+
+        let updatedTemp = previousData.nearestDevice.averageTemp;
+        let updatedHumidity = previousData.nearestDevice.averageHumidity;
+        let newChartData = previousData.nearestDevice.carbonChartData || [];
+
+        if (newData.type === 'suhu') {
+          updatedTemp = newData.value;
+        } else if (newData.type === 'kelembaban') {
+          updatedHumidity = newData.value;
+        } else {
+          newChartData = [...newChartData, newData.value];
+          if (newChartData.length > 20) {
+            newChartData.shift();
+          }
+        }
+
+        return {
+          ...previousData,
+          nearestDevice: {
+            ...previousData.nearestDevice,
+            averageTemp: updatedTemp,
+            averageHumidity: updatedHumidity,
+            carbonChartData: newChartData,
+          },
+        };
+      });
+    }
+
     const fetchWithLocation = (position: GeolocationPosition) => {
       const { latitude, longitude } = position.coords;
       dashboardAPI.getUserDashboardData(latitude, longitude)
         .then(response => {
           setData(response.data);
+          socket.on('new_data', onNewData);
+          socket.connect();
         })
         .catch(err => {
           console.error('Failed to fetch user dashboard data', err);
@@ -56,6 +91,11 @@ const UserDashboard: React.FC = () => {
       setError('Geolocation is not supported by this browser.');
       setLoading(false);
     }
+
+    return () => {
+      socket.off('new_data', onNewData);
+      socket.disconnect();
+    };
   }, []);
 
   if (loading) {

@@ -4,6 +4,7 @@ import { Device } from '../../types';
 import DeviceForm from './DeviceForm';
 import { useAuth } from '../../contexts/AuthContext';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const DeviceManagement: React.FC = () => {
   const { user } = useAuth();
@@ -113,6 +114,23 @@ const DeviceManagement: React.FC = () => {
     }
   };
 
+  const handleToggleDevice = async (device: Device) => {
+    const action = device.isActive ? 'off' : 'on';
+    try {
+      const response = await axios.get(`http://${device.ip}/${action}`);
+      console.log(`Device ${action} Response:`, response);
+      setDevices(prevDevices => 
+        prevDevices.map(d => 
+          d.id === device.id ? { ...d, isActive: !d.isActive } : d
+        )
+      );
+      Swal.fire('Success', `Device turned ${action} successfully`, 'success');
+    } catch (error) {
+      console.error(`Failed to turn the device ${action}`, error);
+      Swal.fire('Error', `Failed to turn the device ${action}`, 'error');
+    }
+  };
+
   if (loading) {
     return <div className="p-4">Loading...</div>;
   }
@@ -170,6 +188,13 @@ const DeviceManagement: React.FC = () => {
                 </td>
                 <td data-label="Actions" className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-transparent text-sm">
                   <div className="flex justify-end">
+                    <button 
+                      onClick={() => handleToggleDevice(device)}
+                      disabled={!device.ip}
+                      className={`px-4 py-2 text-white font-bold rounded ${device.isActive ? 'bg-red-500 hover:bg-red-700' : 'bg-green-500 hover:bg-green-700'} disabled:opacity-50 mr-4`}
+                    >
+                      {device.isActive ? 'On' : 'Off'}
+                    </button>
                     <button onClick={() => handleOpenModal(device)} className={`text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4 ${user.role === 'admin_user' ? 'hidden' : ''}`}>Edit</button>
                     <button onClick={() => handleDeleteDevice(device.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                   </div>

@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import { User, Location, Device, ApiNotification, DashboardSuperAdmin, AdminDashboardData, UserDashboardData } from '../types';
 
 const API_BASE_URL = 'https://iot.vcompcenter.com/api';
-const SOCKET_URL = 'https://iot.vcompcenter.com';
+const SOCKET_URL = 'https://iot.vcompcenter.com/';
 // const API_BASE_URL = 'http://192.168.137.1:5051/api';
 // const SOCKET_URL = 'http://192.168.137.1:5051';
 
