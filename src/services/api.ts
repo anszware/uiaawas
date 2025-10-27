@@ -1,7 +1,15 @@
 import axios from 'axios';
-import { User, Location, Device, Notification, DashboardSuperAdmin, DashboardAdminUser, DashboardUser } from '../types';
+import { io } from 'socket.io-client';
+import { User, Location, Device, ApiNotification, DashboardSuperAdmin, AdminDashboardData, UserDashboardData } from '../types';
 
 const API_BASE_URL = 'https://iot.vcompcenter.com/api';
+const SOCKET_URL = 'https://iot.vcompcenter.com';
+// const API_BASE_URL = 'http://192.168.137.1:5051/api';
+// const SOCKET_URL = 'http://192.168.137.1:5051';
+
+export const socket = io(SOCKET_URL, {
+  autoConnect: false, // Sebaiknya koneksi dilakukan secara manual saat dibutuhkan
+});
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +45,7 @@ export const authAPI = {
 };
 
 export const dashboardAPI = {
-  getSuperAdminData: () => api.get<DashboardSuperAdmin>('/dashboard/superadmin'),
+  getSuperAdminDashboardData: () => api.get<DashboardSuperAdmin>('/dashboard/superadmin'),
   getAdminDashboardData: () => api.get<AdminDashboardData>('/dashboard/admin'),
   getUserDashboardData: (lat: number, lon: number) => 
     api.get<UserDashboardData>(`/dashboard/user?lat=${lat}&lon=${lon}`),
@@ -77,8 +85,8 @@ export const devicesAPI = {
 };
 
 export const notificationsAPI = {
-  getAll: () => api.get<Notification[]>('/notifications'),
-  getUnread: () => api.get<Notification[]>('/notifications/unread'),
+  getAll: () => api.get<ApiNotification[]>('/notifications'),
+  getUnread: () => api.get<ApiNotification[]>('/notifications/unread'),
   markAsRead: (id: number) => api.put(`/notifications/${id}/read`),
   markAllAsRead: () => api.put('/notifications/read-all'),
   delete: (id: number) => api.delete(`/notifications/${id}`),

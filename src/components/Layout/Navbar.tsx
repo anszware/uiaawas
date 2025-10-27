@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { notificationsAPI } from '../../services/api';
-import { Notification } from '../../types';
+import { notificationsAPI, socket } from '../../services/api';
+import { ApiNotification } from '../../types';
 import { 
   BellIcon, 
   SunIcon, 
@@ -22,14 +22,39 @@ interface NavbarProps {
 export default function Navbar({ onToggleSidebar }: NavbarProps) {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Listener untuk notifikasi baru dari Socket.IO
+    const handleNewNotification = (newNotification: ApiNotification) => {
+      // Tambahkan notifikasi baru ke state
+      setNotifications(prevNotifications => [newNotification, ...prevNotifications]);
+      loadNotifications(); // Refresh the count from backend
+      
+      // Tampilkan toast
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: 'Notifikasi Baru',
+        text: newNotification.message,
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+      });
+    };
+
+    socket.on('new_notification', handleNewNotification);
     loadNotifications();
+
+    // Cleanup listener saat komponen di-unmount
+    return () => {
+      socket.off('new_notification', handleNewNotification);
+    };
   }, []);
 
   useEffect(() => {
@@ -46,21 +71,25 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const loadNotifications = async () => {
+  const handleMarkAsRead = async (id: number) => {
+    console.log(`Attempting to mark notification ${id} as read.`);
     try {
-      const response = await notificationsAPI.getUnread();
-      setNotifications(response.data);
+      await notificationsAPI.markAsRead(id);
+      console.log(`Notification ${id} marked as read successfully.`);
+      loadNotifications();
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      console.error(`Failed to mark notification ${id} as read:`, error);
     }
   };
 
-  const handleMarkAsRead = async (id: number) => {
+  const loadNotifications = async () => {
     try {
-      await notificationsAPI.markAsRead(id);
-      loadNotifications();
+      const response = await notificationsAPI.getUnread();
+      console.log('Loaded unread notifications:', response.data);
+      setNotifications(response.data);
+      console.log('Notifications state after update:', response.data);
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      console.error('Failed to load notifications:', error);
     }
   };
 
@@ -156,9 +185,15 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
                     ) : (
                       notifications.map((notification) => (
                         <div
-                          key={notification.id}
+                          key={notification.id || `notification-${Math.random()}`}
                           className="p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                          onClick={() => handleMarkAsRead(notification.id)}
+                          onClick={() => {
+                            if (notification.id) {
+                              handleMarkAsRead(notification.id);
+                            } else {
+                              console.warn('Attempted to mark a notification with undefined ID as read:', notification);
+                            }
+                          }}
                         >
                           <p className="text-sm text-gray-900 dark:text-white">
                             {notification.message}

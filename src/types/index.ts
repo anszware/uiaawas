@@ -67,15 +67,23 @@ export interface ProductLocation {
 
 export interface AdminDashboardData {
   hasLocation: boolean;
-  locationLang: number;
-  locationLong: number;
+  locationLang?: number;
+  locationLong?: number;
   totalActiveProducts?: number;
   totalInactiveProducts?: number;
-  productLocations?: ProductLocation[];
+  productLocations?: {
+    deviceName: string;
+    lat: number;
+    lng: number;
+    locationName: string;
+  }[];
   averageTemp?: number;
   averageHumidity?: number;
-  carbonChartData?: number[];
-  notifications?: ApiNotification[];
+  qualityChartData?: {
+    jenis_data: string;
+    data: any;
+    recorded_at: string;
+  }[];
 }
 
 // Type for Regular User Dashboard API Response

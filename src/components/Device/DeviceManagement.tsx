@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { devicesAPI, locationsAPI } from '../../services/api';
+import { devicesAPI, locationsAPI, socket } from '../../services/api';
 import { Device } from '../../types';
 import DeviceForm from './DeviceForm';
 import { useAuth } from '../../contexts/AuthContext';
@@ -25,6 +25,10 @@ const DeviceManagement: React.FC = () => {
         const userLocation = await locationsAPI.getLocMember(user.id);
         const idLocation = parseInt(userLocation.data[0].locationId);
         setAdminLocationId(idLocation);
+        if (socket.connected) {
+          socket.emit('join_location', idLocation);
+        }
+
         if (userLocation && userLocation.data && userLocation.data.length > 0) {
           response = await devicesAPI.getLoc(idLocation);
         } else {
@@ -166,7 +170,7 @@ const DeviceManagement: React.FC = () => {
                 </td>
                 <td data-label="Actions" className="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-transparent text-sm">
                   <div className="flex justify-end">
-                    <button onClick={() => handleOpenModal(device)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4">Edit</button>
+                    <button onClick={() => handleOpenModal(device)} className={`text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4 ${user.role === 'admin_user' ? 'hidden' : ''}`}>Edit</button>
                     <button onClick={() => handleDeleteDevice(device.id)} className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                   </div>
                 </td>

@@ -68,26 +68,32 @@ const DeviceForm: React.FC<DeviceFormProps> = ({ device, onSave, onCancel, admin
         <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">{device ? 'Edit Device' : 'Add New Device'}</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
+            <p className="mt-2 text-sm text-gray-500">
+              Masukan nomor seri pada produk Carbonlight.
+            </p>
+
+          </div>
+          <div className="mb-4">
             <label htmlFor="nomor_seri" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Serial Number</label>
             <input type="text" name="nomor_seri" id="nomor_seri" value={formData.nomor_seri} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <label htmlFor="ip" className="block text-sm font-medium text-gray-700 dark:text-gray-300">IP Address</label>
             <input type="text" name="ip" id="ip" value={formData.ip} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <label htmlFor="mac_address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">MAC Address</label>
             <input type="text" name="mac_address" id="mac_address" value={formData.mac_address} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <label htmlFor="lang" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Latitude</label>
             <input type="number" name="lang" id="lang" value={formData.lang} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <label htmlFor="long" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Longitude</label>
             <input type="number" name="long" id="long" value={formData.long} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
+          <div className="mb-4 hidden">
             <label htmlFor="locationId" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
             <select 
               name="locationId" 
